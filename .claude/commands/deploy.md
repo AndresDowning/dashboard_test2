@@ -14,11 +14,12 @@ Requiere que `/setup` ya haya escrito `.env.local`.
   con framework Next.js, conectado a este repo.
 
 ## 3. Subir variables de entorno
-- Sube a Vercel (entornos Production y Preview) las variables públicas de
-  `.env.local`:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Solo esas dos variables públicas; no hay tokens que subir.
+- Sube a Vercel (entornos Production y Preview) las variables de `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL` (pública)
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (pública)
+  - `SUPABASE_SERVICE_ROLE_KEY` (**secreta**, solo servidor — el panel del
+    admin no funciona sin ella). No lleva prefijo `NEXT_PUBLIC`, así que nunca
+    se expone al navegador.
 
 ## 4. Desplegar a producción
 - Lanza el deploy a producción vía el MCP de Vercel.

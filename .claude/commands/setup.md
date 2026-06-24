@@ -17,10 +17,14 @@ si algo ya existe, enlázalo en vez de recrearlo.
 - Si no existe, créalo (`create_project`, región más cercana, p. ej. `us-east-1`)
   y espera a que esté ACTIVE antes de seguir.
 
-## 3. Aplicar la migración (MCP de Supabase)
-- Aplica el SQL de `supabase/migrations/0001_init.sql` con `apply_migration`.
-  Confirma que la tabla `public.messages` y sus políticas RLS quedaron creadas.
-  No le pidas al alumno correr SQL a mano.
+## 3. Aplicar las migraciones (MCP de Supabase)
+- Aplica **en orden** todos los archivos de `supabase/migrations/` con
+  `apply_migration`:
+  - `0001_init.sql` → tabla `messages` (demo).
+  - `0002_documents.sql` → tablas `profiles` y `documents`, función `is_admin()`,
+    el bucket privado `documents` en Storage y sus políticas RLS.
+  Confirma que las tablas y el bucket `documents` quedaron creados. No le pidas
+  al alumno correr SQL a mano.
 
 ## 4. Configurar auth
 - Asegura que el proveedor email/password esté habilitado y que la
@@ -30,9 +34,21 @@ si algo ya existe, enlázalo en vez de recrearlo.
 ## 5. Escribir `.env.local`
 - Obtén la URL del proyecto (`get_project_url`) y la anon key
   (`get_publishable_keys`) vía el MCP.
+- Obtén también la **service role key** (key secreta). Si el MCP no la expone,
+  pídesela al alumno desde el dashboard de Supabase
+  (Settings → API → `service_role`). Esta key es del lado servidor: crea
+  usuarios, sube archivos y firma descargas. Nunca va con prefijo `NEXT_PUBLIC`.
 - Escribe/actualiza `.env.local` con:
   - `NEXT_PUBLIC_SUPABASE_URL=...`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=...`
+  - `SUPABASE_SERVICE_ROLE_KEY=...`
+
+## 5b. Crear la cuenta del admin
+- El admin del panel es `adowning@paytiptap.com` (definido en `lib/constants.ts`
+  y en la función `is_admin()` del SQL).
+- Para arrancar, el admin entra a `/login` y usa el botón
+  **"Crear cuenta de admin"** una sola vez (solo funciona con ese email).
+  A partir de ahí, el admin crea las demás cuentas desde `/admin`.
 
 ## 6. Instalar y levantar
 - Corre `npm install` si `node_modules` no existe.

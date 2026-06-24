@@ -32,8 +32,21 @@ Para desplegar, usa el flujo de `/deploy` (`.claude/commands/deploy.md`).
 
 ## Tablas
 
-- `messages` — mensajes demo. Lectura pública; escritura solo del dueño
-  (`user_id = auth.uid()`) vía RLS.
+- `messages` — mensajes demo (del kit original). Lectura pública; escritura
+  solo del dueño (`user_id = auth.uid()`) vía RLS.
+- `profiles` — un perfil por usuario (`id` = `auth.users.id`). Se crea solo con
+  un trigger al registrar. Cada quien ve el suyo; el admin ve todos.
+- `documents` — metadatos de archivos: `owner_id`, `file_path`, `file_name`.
+  El dueño ve los suyos; solo el admin inserta/borra (RLS vía `is_admin()`).
+
+## Panel de documentos
+
+- Admin = `adowning@paytiptap.com` (en `lib/constants.ts` y en `is_admin()`).
+- El admin (en `/admin`) crea usuarios y les sube documentos; cada usuario ve
+  los suyos en `/dashboard`. Archivos en el bucket privado `documents`,
+  guardados como `{user_id}/{archivo}`.
+- `SUPABASE_SERVICE_ROLE_KEY` (solo servidor, en `.env.local`) habilita crear
+  usuarios, subir archivos y firmar descargas. Nunca exponer al cliente.
 
 ## Cómo correr (si ya está configurado)
 

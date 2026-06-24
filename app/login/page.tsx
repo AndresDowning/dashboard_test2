@@ -1,4 +1,9 @@
-import { login, signup } from "./actions";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { login, signupAdmin } from "./actions";
+import { ADMIN_EMAIL } from "@/lib/constants";
+
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,
@@ -7,13 +12,20 @@ export default async function LoginPage({
 }) {
   const { error } = await searchParams;
 
+  // Si ya hay sesión, no mostramos el login.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) redirect("/dashboard");
+
   return (
     <main>
-      <span className="badge">Supabase Auth</span>
-      <h1>Entrar o crear cuenta</h1>
+      <span className="badge">Acceso</span>
+      <h1>Entrar</h1>
       <p className="subtitle">
-        Email y contraseña. La confirmación de email está desactivada en dev, así
-        que entras al instante.
+        Email y contraseña. Si eres usuario y no tienes cuenta, el administrador
+        debe crearla por ti.
       </p>
 
       {error && <div className="warn">⚠️ {error}</div>}
@@ -27,11 +39,16 @@ export default async function LoginPage({
 
         <div className="row">
           <button formAction={login}>Entrar</button>
-          <button formAction={signup} className="secondary">
-            Crear cuenta
+          <button formAction={signupAdmin} className="secondary">
+            Crear cuenta de admin
           </button>
         </div>
       </form>
+
+      <p className="subtitle" style={{ marginTop: "1rem", fontSize: "0.85rem" }}>
+        “Crear cuenta de admin” solo funciona con <code>{ADMIN_EMAIL}</code> y se
+        usa una sola vez para el arranque.
+      </p>
     </main>
   );
 }
