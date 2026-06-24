@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import FilesClient from "./FilesClient";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "adowning@paytiptap.com";
 
 export default async function Dashboard() {
   const supabase = await createClient();
@@ -9,20 +12,18 @@ export default async function Dashboard() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Defensa extra además del middleware.
   if (!user) redirect("/login");
 
-  return (
-    <main>
-      <span className="badge">Ruta protegida</span>
-      <h1>Dashboard</h1>
-      <p className="subtitle">
-        Solo visible con sesión iniciada. Sesión de: <code>{user.email}</code>
-      </p>
+  const { data: files } = await supabase
+    .from("files")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-      <form action="/auth/signout" method="post">
-        <button>Cerrar sesión</button>
-      </form>
-    </main>
+  return (
+    <FilesClient
+      user={{ id: user.id, email: user.email ?? "" }}
+      files={files ?? []}
+      isAdmin={user.email === ADMIN_EMAIL}
+    />
   );
 }

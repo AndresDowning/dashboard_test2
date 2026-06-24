@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
+
 export const metadata: Metadata = {
-  title: "Claude Code · Clase Demo",
-  description: "Starter Next.js + Supabase listo para desplegar en Vercel.",
+  title: "Versata · Portal de Documentos",
+  description: "Portal seguro para compartir documentos con clientes.",
 };
 
 export default function RootLayout({
@@ -11,7 +14,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className={spaceGrotesk.className}>{children}</body>
     </html>
   );
 }
