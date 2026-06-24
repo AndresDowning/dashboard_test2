@@ -1,0 +1,5 @@
+# Nunca subir secretos locales ni artefactos al deploy.
+.env
+.env*.local
+.next
+node_modules
