@@ -23,6 +23,8 @@ si algo ya existe, enlázalo en vez de recrearlo.
   - `0001_init.sql` → tabla `messages` (demo).
   - `0002_documents.sql` → tablas `profiles` y `documents`, función `is_admin()`,
     el bucket privado `documents` en Storage y sus políticas RLS.
+  - `0003_metrics.sql` → tabla `metrics` (Excel de métricas por usuario) con su
+    RLS (dueño ve las suyas; solo el admin inserta/borra).
   Confirma que las tablas y el bucket `documents` quedaron creados. No le pidas
   al alumno correr SQL a mano.
 

@@ -38,6 +38,9 @@ Para desplegar, usa el flujo de `/deploy` (`.claude/commands/deploy.md`).
   un trigger al registrar. Cada quien ve el suyo; el admin ve todos.
 - `documents` — metadatos de archivos: `owner_id`, `file_path`, `file_name`.
   El dueño ve los suyos; solo el admin inserta/borra (RLS vía `is_admin()`).
+- `metrics` — métricas por usuario parseadas de un Excel: `owner_id`,
+  `source_name`, `headers` (jsonb), `rows` (jsonb). El dueño ve las suyas; solo
+  el admin inserta/borra (misma RLS que `documents`).
 
 ## Panel de documentos
 
@@ -45,6 +48,11 @@ Para desplegar, usa el flujo de `/deploy` (`.claude/commands/deploy.md`).
 - El admin (en `/admin`) crea usuarios y les sube documentos; cada usuario ve
   los suyos en `/dashboard`. Archivos en el bucket privado `documents`,
   guardados como `{user_id}/{archivo}`.
+- El admin también sube un **Excel de métricas** por usuario. Se parsea en el
+  servidor con `xlsx` (`uploadMetrics` en `admin/actions.ts`) y se guarda en la
+  tabla `metrics`. El usuario las ve en `/dashboard` (sección "Mis métricas"):
+  con 2 columnas se muestran como tarjetas KPI + gráfico de barras; con 3+,
+  como tabla. Render compartido en `app/(protected)/_components/MetricsView.tsx`.
 - `SUPABASE_SERVICE_ROLE_KEY` (solo servidor, en `.env.local`) habilita crear
   usuarios, subir archivos y firmar descargas. Nunca exponer al cliente.
 
