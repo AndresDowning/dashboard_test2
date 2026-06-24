@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ADMIN_EMAIL } from "@/lib/constants";
-import { createUser, uploadDocument } from "./actions";
+import { createUser, uploadDocument, uploadMetrics, deleteMetrics } from "./actions";
+import { MetricsView, type MetricRecord } from "../_components/MetricsView";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +46,18 @@ export default async function AdminPage({
     .from("documents")
     .select("id, file_name, owner_id, created_at")
     .order("created_at", { ascending: false });
+  const { data: metricsData } = await admin
+    .from("metrics")
+    .select("id, source_name, headers, rows, owner_id, created_at")
+    .order("created_at", { ascending: false });
 
   const users = (profilesData ?? []).filter(
     (p: Profile) => p.email !== ADMIN_EMAIL
   ) as Profile[];
   const docs = (docsData ?? []) as Doc[];
+  const metrics = (metricsData ?? []) as (MetricRecord & {
+    owner_id: string;
+  })[];
 
   const nameFor = (id: string) => {
     const u = users.find((x) => x.id === id);
@@ -194,6 +202,66 @@ export default async function AdminPage({
               </div>
             </div>
 
+            {/* Subir métricas (Excel) */}
+            <div className="form-section">
+              <div className="section-title">Subir métricas (Excel)</div>
+              {users.length === 0 ? (
+                <div className="empty">
+                  Primero crea un usuario para subirle métricas.
+                </div>
+              ) : (
+                <form className="form-card" action={uploadMetrics}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                    }}
+                  >
+                    <div>
+                      <label htmlFor="m_owner_id">Para el usuario</label>
+                      <select id="m_owner_id" name="owner_id" required>
+                        {users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.full_name
+                              ? `${u.full_name} — ${u.email}`
+                              : u.email}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="m_file">Archivo (.xlsx, .xls, .csv)</label>
+                      <input
+                        id="m_file"
+                        name="file"
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="btn-row">
+                    <button type="submit" className="btn-primary btn-sm">
+                      Subir métricas
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--muted)",
+                      marginTop: 10,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    La primera fila se usa como encabezados. Si hay 2 columnas
+                    (métrica · valor) se muestran como tarjetas y gráfico de
+                    barras; con más columnas, como tabla.
+                  </div>
+                </form>
+              )}
+            </div>
+
             {/* Users table */}
             <div className="form-section">
               <div className="tbl-head-row">
@@ -321,6 +389,41 @@ export default async function AdminPage({
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Métricas subidas */}
+            {metrics.length > 0 && (
+              <div className="form-section">
+                <div className="tbl-head-row">
+                  <div className="tbl-title">
+                    Métricas subidas ({metrics.length})
+                  </div>
+                </div>
+                {metrics.map((m) => (
+                  <div key={m.id}>
+                    <div
+                      style={{
+                        fontFamily: "'IBM Plex Mono', monospace",
+                        fontSize: 9,
+                        letterSpacing: "0.16em",
+                        color: "var(--muted)",
+                        margin: "0 2px 8px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Usuario · {nameFor(m.owner_id)}
+                    </div>
+                    <MetricsView record={m}>
+                      <form action={deleteMetrics}>
+                        <input type="hidden" name="id" value={m.id} />
+                        <button type="submit" className="btn-ghost btn-sm">
+                          Borrar
+                        </button>
+                      </form>
+                    </MetricsView>
+                  </div>
+                ))}
               </div>
             )}
 

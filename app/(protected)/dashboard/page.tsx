@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ADMIN_EMAIL } from "@/lib/constants";
+import { MetricsView, type MetricRecord } from "../_components/MetricsView";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,13 @@ export default async function Dashboard() {
 
   const docs = (data ?? []) as Doc[];
 
+  // RLS garantiza que solo vengan las métricas de este usuario.
+  const { data: metricsData } = await supabase
+    .from("metrics")
+    .select("id, source_name, headers, rows, created_at")
+    .order("created_at", { ascending: false });
+  const metrics = (metricsData ?? []) as MetricRecord[];
+
   const admin = createAdminClient();
   const links = new Map<string, string>();
   for (const d of docs) {
@@ -61,11 +69,18 @@ export default async function Dashboard() {
         </div>
         <nav className="sidebar-nav">
           <div className="sidebar-nav-head">Portal</div>
-          <a href="/dashboard" className="nav-link active">
+          <a href="#documentos" className="nav-link active">
             <span className="nav-bar" />
             <span style={{ flex: 1 }}>Mis documentos</span>
             {docs.length > 0 && (
               <span className="nav-badge">{docs.length}</span>
+            )}
+          </a>
+          <a href="#metricas" className="nav-link">
+            <span className="nav-bar" />
+            <span style={{ flex: 1 }}>Mis métricas</span>
+            {metrics.length > 0 && (
+              <span className="nav-badge">{metrics.length}</span>
             )}
           </a>
         </nav>
@@ -128,7 +143,7 @@ export default async function Dashboard() {
             )}
 
             {/* Table */}
-            <div className="tbl-head-row">
+            <div className="tbl-head-row" id="documentos">
               <div>
                 <div className="tbl-title">Documentos recibidos</div>
                 <div className="tbl-subtitle">
@@ -219,6 +234,25 @@ export default async function Dashboard() {
                 ))}
               </div>
             )}
+
+            {/* Métricas */}
+            <div id="metricas" style={{ marginTop: 40 }}>
+              <div className="tbl-head-row">
+                <div>
+                  <div className="tbl-title">Mis métricas</div>
+                  <div className="tbl-subtitle">
+                    Indicadores que el administrador compartió contigo
+                  </div>
+                </div>
+              </div>
+              {metrics.length === 0 ? (
+                <div className="empty">
+                  El administrador aún no te ha compartido métricas.
+                </div>
+              ) : (
+                metrics.map((m) => <MetricsView key={m.id} record={m} />)
+              )}
+            </div>
 
             <form
               action="/auth/signout"
